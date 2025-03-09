@@ -1,22 +1,52 @@
 import React from 'react';
+import { 
+  Typography, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  Chip, 
+  Box,
+  Divider
+} from '@mui/material';
 
-// Simple task list display; parent handles fetching tasks
 function TaskList({ tasks }) {
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'NOWE': return 'info';
+      case 'W_TRAKCIE': return 'warning';
+      case 'ZAKONCZONE': return 'success';
+      default: return 'default';
+    }
+  };
+
   return (
-    <div>
-      <h3>Task List</h3>
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Task List
+      </Typography>
       {tasks.length === 0 ? (
-        <p>No tasks available.</p>
+        <Typography color="textSecondary">No tasks available.</Typography>
       ) : (
-        <ul>
-          {tasks.map((task) => (
-            <li key={task.id}>
-              <strong>{task.name}</strong> | Status: {task.status}
-            </li>
+        <List>
+          {tasks.map((task, index) => (
+            <React.Fragment key={task.id}>
+              {index > 0 && <Divider />}
+              <ListItem>
+                <ListItemText 
+                  primary={task.name} 
+                  secondary={`Client ID: ${task.client_id}`} 
+                />
+                <Chip 
+                  label={task.status} 
+                  color={getStatusColor(task.status)} 
+                  size="small" 
+                />
+              </ListItem>
+            </React.Fragment>
           ))}
-        </ul>
+        </List>
       )}
-    </div>
+    </Box>
   );
 }
 

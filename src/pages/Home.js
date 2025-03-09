@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import API from '../api';
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
+import { Container, Typography, Paper, Grid, Box } from '@mui/material';
 
 // Main page for viewing and creating tasks
 function Home() {
@@ -26,11 +27,25 @@ function Home() {
   };
 
   return (
-    <div>
-      <h1>Production Floor Task Management</h1>
-      <TaskForm onTaskCreated={handleTaskCreated} />
-      <TaskList tasks={tasks} />
-    </div>
+    <Container maxWidth="lg">
+      <Box sx={{ mt: 4, mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Production Floor Task Management
+        </Typography>
+      </Box>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={5}>
+          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+            <TaskForm onTaskCreated={handleTaskCreated} />
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={7}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <TaskList tasks={tasks} />
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
   );
 }
 

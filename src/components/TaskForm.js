@@ -1,62 +1,90 @@
 import React, { useState } from 'react';
 import API from '../api';
+import { 
+  TextField, 
+  Button, 
+  Typography, 
+  Box, 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  MenuItem, 
+  Grid 
+} from '@mui/material';
 
-// Simple form to create a new task
-// Adjust fields to match your data model (category, assigned_to, etc.)
 function TaskForm({ onTaskCreated }) {
   const [name, setName] = useState('');
-  const [clientId, setClientId] = useState('1'); // Hard-coded for demo
+  const [clientId, setClientId] = useState('1');
   const [status, setStatus] = useState('NOWE');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // POST request to create a new task
       await API.post('/tasks', {
         name,
         client_id: parseInt(clientId, 10),
         status,
       });
       setName('');
-      onTaskCreated(); // Tell parent component to refresh task list
+      onTaskCreated();
     } catch (err) {
       console.error('Error creating task:', err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-      <h3>Create Task</h3>
-      <div>
-        <label>Task Name: </label>
-        <input
-          type="text"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </div>
-      <div>
-        <label>Client ID: </label>
-        <input
-          type="number"
-          value={clientId}
-          onChange={(e) => setClientId(e.target.value)}
-        />
-      </div>
-      <div>
-        <label>Status: </label>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="NOWE">NOWE</option>
-          <option value="W_TRAKCIE">W_TRAKCIE</option>
-          <option value="ZAKONCZONE">ZAKONCZONE</option>
-        </select>
-      </div>
-      <button type="submit">Add Task</button>
-    </form>
+    <Box component="form" onSubmit={handleSubmit} noValidate>
+      <Typography variant="h6" gutterBottom>
+        Create Task
+      </Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            required
+            label="Task Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            margin="normal"
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            type="number"
+            label="Client ID"
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+            margin="normal"
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={status}
+              label="Status"
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <MenuItem value="NOWE">NOWE</MenuItem>
+              <MenuItem value="W_TRAKCIE">W_TRAKCIE</MenuItem>
+              <MenuItem value="ZAKONCZONE">ZAKONCZONE</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12}>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            color="primary" 
+            fullWidth
+            sx={{ mt: 1 }}
+          >
+            Add Task
+          </Button>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
 

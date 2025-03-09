@@ -1,8 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import API from '../api';
+import {
+  Container,
+  Typography,
+  TextField,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  List,
+  ListItem,
+  ListItemText,
+  Paper,
+  Grid,
+  Box,
+  Chip,
+  Divider
+} from '@mui/material';
 
-// Basic page to list or create users
-// Extend as needed (role-based forms, etc.)
 function Users() {
   const [users, setUsers] = useState([]);
   const [newUser, setNewUser] = useState({
@@ -44,67 +60,107 @@ function Users() {
   };
 
   return (
-    <div>
-      <h1>Users</h1>
-      <form onSubmit={createUser} style={{ marginBottom: '1rem' }}>
-        <div>
-          <label>Username: </label>
-          <input
-            type="text"
-            required
-            value={newUser.username}
-            onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-          />
-        </div>
-        <div>
-          <label>Email: </label>
-          <input
-            type="email"
-            value={newUser.email}
-            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-          />
-        </div>
-        <div>
-          <label>Role: </label>
-          <select
-            value={newUser.role}
-            onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-          >
-            <option value="ADMIN_SYSTEMU">ADMIN_SYSTEMU</option>
-            <option value="POWER_USER">POWER_USER</option>
-            <option value="PRACOWNIK">PRACOWNIK</option>
-          </select>
-        </div>
-        <div>
-          <label>Password: </label>
-          <input
-            type="password"
-            required
-            value={newUser.password}
-            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-          />
-        </div>
-        <div>
-          <label>Client ID: </label>
-          <input
-            type="number"
-            value={newUser.client_id}
-            onChange={(e) =>
-              setNewUser({ ...newUser, client_id: parseInt(e.target.value, 10) })
-            }
-          />
-        </div>
-        <button type="submit">Create User</button>
-      </form>
-
-      <ul>
-        {users.map((u) => (
-          <li key={u.id}>
-            {u.username} ({u.role}) - {u.email || 'No Email'}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Container maxWidth="lg">
+      <Box sx={{ mt: 4, mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Users Management
+        </Typography>
+      </Box>
+      
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={5}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Create New User
+            </Typography>
+            <Box component="form" onSubmit={createUser} noValidate>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Username"
+                value={newUser.username}
+                onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+              />
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Email"
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+              />
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Role</InputLabel>
+                <Select
+                  value={newUser.role}
+                  label="Role"
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                >
+                  <MenuItem value="ADMIN_SYSTEMU">ADMIN_SYSTEMU</MenuItem>
+                  <MenuItem value="POWER_USER">POWER_USER</MenuItem>
+                  <MenuItem value="PRACOWNIK">PRACOWNIK</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Password"
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+              />
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Client ID"
+                type="number"
+                value={newUser.client_id}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, client_id: parseInt(e.target.value, 10) })
+                }
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Create User
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+        
+        <Grid item xs={12} md={7}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              User List
+            </Typography>
+            <List>
+              {users.map((user, index) => (
+                <React.Fragment key={user.id}>
+                  {index > 0 && <Divider />}
+                  <ListItem>
+                    <ListItemText
+                      primary={user.username}
+                      secondary={user.email || 'No Email'}
+                    />
+                    <Chip 
+                      label={user.role} 
+                      color={user.role === 'ADMIN_SYSTEMU' ? 'error' : 
+                             user.role === 'POWER_USER' ? 'warning' : 'primary'} 
+                      size="small" 
+                    />
+                  </ListItem>
+                </React.Fragment>
+              ))}
+            </List>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
   );
 }
 
