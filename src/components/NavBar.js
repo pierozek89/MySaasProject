@@ -9,20 +9,27 @@ import {
   Typography, 
   Box, 
   ListItemButton,
-  Divider
+  Divider,
+  IconButton
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
+import BusinessIcon from '@mui/icons-material/Business';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import { useColorMode } from '../context/ThemeContext';
 
 // Set drawer width
 const drawerWidth = 240;
 
 function NavBar() {
   const location = useLocation();
+  const { mode, toggleColorMode } = useColorMode();
   
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/' },
     { text: 'Users', icon: <GroupIcon />, path: '/users' },
+    { text: 'Workstations', icon: <BusinessIcon />, path: '/workstations' },
   ];
 
   return (
@@ -37,11 +44,20 @@ function NavBar() {
         },
       }}
     >
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ 
+        p: 2, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between' 
+      }}>
         <Typography variant="h6" component="div">
-          MySaasProject
+          Production System
         </Typography>
+        <IconButton onClick={toggleColorMode} color="inherit">
+          {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
       </Box>
+      
       <Divider />
       <List>
         {menuItems.map((item) => (

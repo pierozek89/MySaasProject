@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../api';
 import { 
   TextField, 
@@ -9,26 +9,106 @@ import {
   InputLabel, 
   Select, 
   MenuItem, 
-  Grid 
+  Grid,
+  CircularProgress,
+  FormHelperText,
+  Alert
 } from '@mui/material';
 
 function TaskForm({ onTaskCreated }) {
   const [name, setName] = useState('');
-  const [clientId, setClientId] = useState('1');
-  const [status, setStatus] = useState('NOWE');
+  const [clientId, setClientId] = useState('');
+  const [workstationId, setWorkstationId] = useState('');
+  const [priority, setPriority] = useState('ZWYKŁY');
+  const [clients, setClients] = useState([]);
+  const [workstations, setWorkstations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [formErrors, setFormErrors] = useState({});
+
+  // Fetch available clients
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const res = await API.get('/clients');
+        setClients(res.data);
+        if (res.data.length > 0) {
+          setClientId(res.data[0].id); // Set default client
+        }
+      } catch (err) {
+        console.error('Error fetching clients:', err);
+        setError('Failed to load clients');
+      }
+    };
+    
+    fetchClients();
+  }, []);
+
+  // Fetch workstations when client changes
+  useEffect(() => {
+    if (!clientId) return;
+    
+    const fetchWorkstations = async () => {
+      try {
+        const res = await API.get(`/workstations/client/${clientId}`);
+        setWorkstations(res.data);
+        // Clear previously selected workstation
+        setWorkstationId('');
+        setFormErrors({...formErrors, workstation: ''});
+      } catch (err) {
+        console.error('Error fetching workstations:', err);
+      }
+    };
+    
+    fetchWorkstations();
+  }, [clientId]);
+
+  const validate = () => {
+    const errors = {};
+    
+    if (!name.trim()) {
+      errors.name = 'Name is required';
+    } else if (name.length > 150) {
+      errors.name = 'Name must be less than 150 characters';
+    }
+    
+    if (!workstationId) {
+      errors.workstation = 'Workstation selection is required';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form
+    if (!validate()) return;
+    
+    setLoading(true);
+    setError('');
+    
     try {
       await API.post('/tasks', {
         name,
-        client_id: parseInt(clientId, 10),
-        status,
+        client_id: clientId,
+        status: 'NOWE', // Always set to NOWE as default
+        workstation_id: workstationId,
+        priority
       });
+      
+      // Reset form
       setName('');
+      setPriority('ZWYKŁY');
+      setWorkstationId('');
+      setFormErrors({});
       onTaskCreated();
     } catch (err) {
       console.error('Error creating task:', err);
+      setError(err.response?.data?.message || 'Failed to create task');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,6 +117,13 @@ function TaskForm({ onTaskCreated }) {
       <Typography variant="h6" gutterBottom>
         Create Task
       </Typography>
+      
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <TextField
@@ -46,32 +133,62 @@ function TaskForm({ onTaskCreated }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             margin="normal"
+            disabled={loading}
+            error={!!formErrors.name}
+            helperText={formErrors.name || `${name.length}/150 characters`}
+            InputProps={{
+              inputProps: { maxLength: 150 }
+            }}
           />
         </Grid>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            type="number"
-            label="Client ID"
-            value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
-            margin="normal"
-          />
-        </Grid>
+        
         <Grid item xs={12}>
           <FormControl fullWidth margin="normal">
-            <InputLabel>Status</InputLabel>
+            <InputLabel>Priority</InputLabel>
             <Select
-              value={status}
-              label="Status"
-              onChange={(e) => setStatus(e.target.value)}
+              value={priority}
+              label="Priority"
+              onChange={(e) => setPriority(e.target.value)}
+              disabled={loading}
             >
-              <MenuItem value="NOWE">NOWE</MenuItem>
-              <MenuItem value="W_TRAKCIE">W_TRAKCIE</MenuItem>
-              <MenuItem value="ZAKONCZONE">ZAKONCZONE</MenuItem>
+              <MenuItem value="NISKI">Niski</MenuItem>
+              <MenuItem value="ZWYKŁY">Zwykły</MenuItem>
+              <MenuItem value="WYSOKI">Wysoki</MenuItem>
             </Select>
           </FormControl>
         </Grid>
+        
+        <Grid item xs={12}>
+          <FormControl 
+            fullWidth 
+            margin="normal" 
+            required
+            error={!!formErrors.workstation}
+          >
+            <InputLabel>Workstation</InputLabel>
+            <Select
+              value={workstationId}
+              label="Workstation *"
+              onChange={(e) => {
+                setWorkstationId(e.target.value);
+                if (e.target.value) {
+                  setFormErrors({...formErrors, workstation: ''});
+                }
+              }}
+              disabled={loading || workstations.length === 0}
+            >
+              {workstations.map((workstation) => (
+                <MenuItem key={workstation.id} value={workstation.id}>
+                  {workstation.name}
+                </MenuItem>
+              ))}
+            </Select>
+            {formErrors.workstation && (
+              <FormHelperText>{formErrors.workstation}</FormHelperText>
+            )}
+          </FormControl>
+        </Grid>
+        
         <Grid item xs={12}>
           <Button 
             type="submit" 
@@ -79,8 +196,9 @@ function TaskForm({ onTaskCreated }) {
             color="primary" 
             fullWidth
             sx={{ mt: 1 }}
+            disabled={loading || !name || !workstationId}
           >
-            Add Task
+            {loading ? <CircularProgress size={24} /> : 'Add Task'}
           </Button>
         </Grid>
       </Grid>
